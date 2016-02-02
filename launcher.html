@@ -21,7 +21,8 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
     var document = window.document,
         localStorage = function (t) {
             try {
-                window.localStorage.setItem(t, t)
+                window.localStorage[t] = t
+                window.localStorage.removeItem(t)
                 return window.localStorage
             } catch (e) {
                 return {}
