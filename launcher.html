@@ -46,9 +46,9 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
             injectRawStyle(response)
             // and cache the text content for further use
             // notice that this overwrites anything that might have already been previously cached
-            this.localStorage[_c] = response
-            this.localStorage[_v] = fontVersion
-        })
+            _this.localStorage[_c] = response
+            _this.localStorage[_v] = fontVersion
+        }.bind(this))
     }
 
     // time to get the actual css file
