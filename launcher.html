@@ -26,10 +26,11 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
     }
 
     LocalFont.prototype.load = function (url, fontVersion, prefix) {
+        prefix = prefix || ''
         var _v = prefix + 'fontVersion', _c = prefix + 'fontCSSCache'
 
         if (this.localStorage[_v] == fontVersion) // if we have the font in localStorage...
-            return injectRawStyle(localStorage[_c]) // ...we use it
+            return injectRawStyle(this.localStorage[_c]) // ...we use it
 
         url += oldAndroid // add correct file ending
 
