@@ -22,7 +22,7 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
 
     function LocalFont() {
         this.localStorage = localStorage('t')
-        this.supportsWoff2 = supportsWoff2()
+        this.supportsWoff2 = null
     }
 
     LocalFont.prototype.load = function (url, fontVersion, prefix) {
@@ -34,6 +34,7 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
 
         url += oldAndroid // add correct file ending
 
+        this.supportsWoff2 = this.supportsWoff2 === null ? supportsWoff2() : this.supportsWoff2
         if (this.supportsWoff2)
             url += '2' // woff2
 
@@ -47,8 +48,8 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
             injectRawStyle(response)
             // and cache the text content for further use
             // notice that this overwrites anything that might have already been previously cached
-            _this.localStorage[_c] = response
-            _this.localStorage[_v] = fontVersion
+            this.localStorage[_c] = response
+            this.localStorage[_v] = fontVersion
         }.bind(this))
     }
 
@@ -92,7 +93,7 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
         var f = new window.FontFace('t', 'url("data:application/font-woff2;base64,d09GMgABAAAAAADcAAoAAAAAAggAAACWAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAABk4ALAoUNAE2AiQDCAsGAAQgBSAHIBtvAcieB3aD8wURQ+TZazbRE9HvF5vde4KCYGhiCgq/NKPF0i6UIsZynbP+Xi9Ng+XLbNlmNz/xIBBqq61FIQRJhC/+QA/08PJQJ3sK5TZFMlWzC/iK5GUN40psgqvxwBjBOg6JUSJ7ewyKE2AAaXZrfUB4v+hze37ugJ9d+DeYqiDwVgCawviwVFGnuttkLqIMGivmDg") format("woff2")', {})
         f.load()['catch'](function () {})
 
-        return f.status == 'loading' || f.status == 'loaded'
+        return f.status === 'loading' || f.status === 'loaded'
     }
 
     window.localFont = new LocalFont()
@@ -100,10 +101,10 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
     /**
      * FontAwesome
      *
-     * @version 4
+     * @version 5
      */
-    window.localFont.load('/on' + window.app.urls.staticPath.split('/on')[1] + 'css/fontawesome/fontawesome-', 4)
-}(window)
+    window.localFont.load('/on' + window.app.urls.staticPath.split('/on')[1] + 'css/fontawesome/fontawesome-', 5)
+}(window);
 </script>
 <noscript>
   <link rel="stylesheet" href="/font.css">
