@@ -10,7 +10,7 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
 -->
 
 <script type="text/javascript">
-!function (window) {
+(function (window) {
     'use strict'
 
     if (!window.addEventListener) return window.localFont = { load: function () {} } // IE8 and below, we load .eot via IE special conditions
@@ -104,7 +104,7 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
      * @version 5
      */
     window.localFont.load('/on' + window.app.urls.staticPath.split('/on')[1] + 'css/fontawesome/fontawesome-', 5)
-}(window);
+}(window));
 </script>
 <noscript>
   <link rel="stylesheet" href="/font.css">
