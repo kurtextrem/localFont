@@ -16,21 +16,35 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
     if (!window.addEventListener) return window.localFont = { load: function () {} } // IE8 and below, we load .eot via IE special conditions
 
     var document = window.document,
-        nua = navigator.userAgent,
-        mobile = /(Android (2|3|4.0|4.1|4.2|4.3))|(Opera (Mini|Mobi))/.test(nua) !== false, // we only check Android and ignore old iPhones (<=4.1, as  only support SVG webfonts and have a global market share of 0%)
-        oldAndroid = mobile && nua.indexOf('Chrome') === -1 ? 'ttf' : 'woff' // Android Stock Browser below 4.4 and Opera Mini deliver ttf; woff support is great enough
+        localStorage = window.localStorage || {},
+        nua = window.navigator.userAgent,
+        mobile = /(Android (2|3|4.0|4.1|4.2|4.3))|(Opera (Mini|Mobi))/.test(nua) !== false, // we only check for Android and ignore old iPhones (<=4.1, as  they only support SVG webfonts and have a global market share of 0%)
+        oldAndroid = mobile && nua.indexOf('Chrome') === -1 ? 'ttf' : 'woff' // To Android Stock Browser below 4.4 and Opera Mini we deliver ttf; woff support is great enough
 
     function LocalFont() {
-        this.localStorage = localStorage('t')
         this.supportsWoff2 = null
+        this.fonts = []
     }
 
-    LocalFont.prototype.load = function (url, fontVersion, prefix) {
+    /**
+     * Loads a specific font.
+     *
+     * @param      {string}     url                       The url to the css file containing the base64 definition
+     * @param      {string}     fontVersion     The font version
+     * @param      {string}     prefix                  Unique font prefix (e.g. the name of the font)
+     * @param      {bool}       onlyIfCached   Only inject if the font is cached already (usecase: Injecting cached fonts in the head, to minimize redraw/layout and loading the font in document ready to achieve better first time to paint)
+     */
+    LocalFont.prototype.load = function (url, fontVersion, prefix, onlyIfCached) {
         prefix = prefix || ''
-        var _v = prefix + 'fontVersion', _c = prefix + 'fontCSSCache'
+        if (this.fonts.indexOf(prefix) !== -1) return // we've loaded that font already
 
-        if (this.localStorage[_v] == fontVersion) // if we have the font in localStorage...
-            return injectRawStyle(this.localStorage[_c]) // ...we use it
+        var _v = prefix + 'fontVersion', _c = prefix + 'fontCSSCache'
+        if (localStorage[_v] == fontVersion) { // if we have the font in localStorage...
+            this.fonts.push(prefix) // ...add it to the injected list...
+            return injectRawStyle(localStorage[_c]) // ...and use it
+        }
+
+        if (onlyIfCached) return // we don't have anything cached, so we bail out.
 
         url += oldAndroid // add correct file ending
 
@@ -48,9 +62,25 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
             injectRawStyle(response)
             // and cache the text content for further use
             // notice that this overwrites anything that might have already been previously cached
-            this.localStorage[_c] = response
-            this.localStorage[_v] = fontVersion
-        }.bind(this))
+            saveStylesheet(_v, _c, fontVersion, response)
+        })
+    }
+
+    /**
+     * Saves a stylesheet in the local storage.
+     *
+     * @param      {string}  versionKey    The version key
+     * @param      {string}  cacheKey       The cache key
+     * @param      {string}  response        The stylesheet
+     * @param      {int}        version            The font version
+     */
+    function saveStylesheet(versionKey, cacheKey, fontVersion, stylesheet) {
+        try { // we need this for private mode safari
+            localStorage[versionKey] = fontVersion
+            localStorage[cacheKey] = stylesheet
+        } catch (e) {
+            // caught
+        }
     }
 
     // time to get the actual css file
@@ -76,21 +106,11 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
         style.innerHTML = text
     }
 
-    function localStorage(t) {
-        try {
-            window.localStorage[t] = t
-            window.localStorage.removeItem(t)
-            return window.localStorage
-        } catch (e) {
-            return {}
-        }
-    }
-
     function supportsWoff2() {
         // Source: https://github.com/filamentgroup/woff2-feature-test
         if (!window.FontFace || typeof window.FontFace !== 'function') return false
 
-        var f = new window.FontFace('t', 'url("data:application/font-woff2;base64,d09GMgABAAAAAADcAAoAAAAAAggAAACWAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAABk4ALAoUNAE2AiQDCAsGAAQgBSAHIBtvAcieB3aD8wURQ+TZazbRE9HvF5vde4KCYGhiCgq/NKPF0i6UIsZynbP+Xi9Ng+XLbNlmNz/xIBBqq61FIQRJhC/+QA/08PJQJ3sK5TZFMlWzC/iK5GUN40psgqvxwBjBOg6JUSJ7ewyKE2AAaXZrfUB4v+hze37ugJ9d+DeYqiDwVgCawviwVFGnuttkLqIMGivmDg") format("woff2")', {})
+        var f = new window.FontFace('t', 'url("data:application/font-woff2;base64,d09GMgABAAAAAADwAAoAAAAAAiQAAACoAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAABmAALAogOAE2AiQDBgsGAAQgBSAHIBuDAciO1EZ3I/mL5/+5/rfPnTt9/9Qa8H4cUUZxaRbh36LiKJoVh61XGzw6ufkpoeZBW4KphwFYIJGHB4LAY4hby++gW+6N1EN94I49v86yCpUdYgqeZrOWN34CMQg2tAmthdli0eePIwAKNIIRS4AGZFzdX9lbBUAQlm//f262/61o8PlYO/D1/X4FrWFFgdCQD9DpGJSxmFyjOAGUU4P0qigcNb82GAAA") format("woff2")', {})
         f.load()['catch'](function () {})
 
         return f.status === 'loading' || f.status === 'loaded'
@@ -98,13 +118,23 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
 
     window.localFont = new LocalFont()
 
+    var path = '/on' + window.app.urls.staticPath.split('/on')[1]
+
     /**
-     * FontAwesome
+     * FontAwesome; Download latest from https://pixelambacht.nl/2016/font-awesome-fixed/ and use https://jaicab.com/localFont/
      *
-     * @version 5
+     * @version 8
      */
-    window.localFont.load('/on' + window.app.urls.staticPath.split('/on')[1] + 'css/fontawesome/fontawesome-', 5)
+    window.localFont.load(path + 'assets/css/fontawesome/fontawesome-', 8)
+
+    /**
+      * Roboto Regular; Only if cached; Include this same statement, but with false as last arg in your document ready / load handler.
+      *
+      * @version 1
+      */
+    window.localFont.load(path + 'assets/css/roboto/roboto-reg-', 1, 'robotoreg', true)
 }(window));
+
 </script>
 <noscript>
   <link rel="stylesheet" href="/font.css">
