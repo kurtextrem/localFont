@@ -104,6 +104,7 @@ Originally by Smashing Magazine: https://gist.github.com/hdragomir/8f00ce2581795
         if (style.styleSheet) // IE
             return style.styleSheet.cssText = text
         style.innerHTML = text
+        style = undefined
     }
 
     function supportsWoff2() {
